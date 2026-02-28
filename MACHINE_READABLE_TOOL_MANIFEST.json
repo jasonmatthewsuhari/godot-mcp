@@ -1,0 +1,126 @@
+{
+  "tools": [
+    {
+      "description": "Get installed Godot version and resolved executable path.",
+      "name": "godot_get_version",
+      "required_args": []
+    },
+    {
+      "description": "Recursively list Godot projects beneath a root directory.",
+      "name": "godot_list_projects",
+      "required_args": [
+        "root_path"
+      ]
+    },
+    {
+      "description": "Launch Godot editor for a project and return session details.",
+      "name": "godot_launch_editor",
+      "required_args": [
+        "project_path"
+      ]
+    },
+    {
+      "description": "Run a Godot project and return session details.",
+      "name": "godot_run_project",
+      "required_args": [
+        "project_path"
+      ]
+    },
+    {
+      "description": "Stop a running Godot process by session_id or latest session.",
+      "name": "godot_stop_execution",
+      "required_args": []
+    },
+    {
+      "description": "Read buffered stdout/stderr from a session with cursor pagination.",
+      "name": "godot_get_debug_output",
+      "required_args": []
+    },
+    {
+      "description": "Analyze project scenes/scripts/resources/plugins/autoloads/main scene.",
+      "name": "godot_analyze_project",
+      "required_args": [
+        "project_path"
+      ]
+    },
+    {
+      "description": "Create a scene through the local Godot addon bridge.",
+      "name": "scene_create",
+      "required_args": [
+        "project_path",
+        "scene_path",
+        "root_node_type"
+      ]
+    },
+    {
+      "description": "Add a node to a scene through the local Godot addon bridge.",
+      "name": "scene_add_node",
+      "required_args": [
+        "project_path",
+        "scene_path",
+        "parent_node_path",
+        "node_type",
+        "node_name"
+      ]
+    },
+    {
+      "description": "Load a sprite texture through the local Godot addon bridge.",
+      "name": "scene_load_sprite",
+      "required_args": [
+        "project_path",
+        "scene_path",
+        "sprite_node_path",
+        "texture_path"
+      ]
+    },
+    {
+      "description": "Export a mesh library through the local Godot addon bridge.",
+      "name": "scene_export_mesh_library",
+      "required_args": [
+        "project_path",
+        "source_scene_path",
+        "mesh_library_path"
+      ]
+    },
+    {
+      "description": "Save a scene through the local Godot addon bridge.",
+      "name": "scene_save",
+      "required_args": [
+        "project_path",
+        "scene_path"
+      ]
+    },
+    {
+      "description": "Get a Godot resource UID through the local addon bridge.",
+      "name": "uid_get",
+      "required_args": [
+        "project_path",
+        "resource_path"
+      ]
+    },
+    {
+      "description": "Refresh UID references through the local addon bridge.",
+      "name": "uid_refresh_references",
+      "required_args": [
+        "project_path"
+      ]
+    },
+    {
+      "description": "Capture rendered output through the local addon bridge.",
+      "name": "render_capture",
+      "required_args": [
+        "project_path"
+      ]
+    },
+    {
+      "description": "Send interaction input through the local addon bridge.",
+      "name": "render_interact",
+      "required_args": [
+        "project_path",
+        "mode",
+        "payload"
+      ]
+    }
+  ]
+}
+

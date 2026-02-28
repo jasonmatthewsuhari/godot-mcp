@@ -33,6 +33,12 @@ jobs:
           python -m leader_verify.smoke_stdio --json > artifacts/stdio_smoke.json
           python -c "import json, pathlib; d=json.loads(pathlib.Path('artifacts/stdio_smoke.json').read_text(encoding='utf-8')); tools=d.get('tools_list', {}).get('result', {}).get('tools', []); pathlib.Path('artifacts/tool_list.json').write_text(json.dumps({'tools': tools}, indent=2, sort_keys=True), encoding='utf-8')"
 
+      - name: Run leader verify unittest suite
+        run: python -m unittest discover -s leader_verify_tests -v
+
+      - name: Validate tool name parity
+        run: python scripts/validate_tool_name_parity.py --json
+
       - name: Upload tool-list artifact
         uses: actions/upload-artifact@v4
         with:
@@ -40,3 +46,39 @@ jobs:
           path: artifacts/tool_list.json
           if-no-files-found: error
 
+  integration:
+    needs: verify
+    if: ${{ vars.ENABLE_GODOT_INTEGRATION == '1' || secrets.ENABLE_GODOT_INTEGRATION == '1' }}
+    runs-on: ubuntu-latest
+    env:
+      ENABLE_GODOT_INTEGRATION: "1"
+      GODOT_PATH: ${{ secrets.GODOT_PATH }}
+      GODOT_BRIDGE_URL: ${{ vars.GODOT_BRIDGE_URL }}
+      GODOT_BRIDGE_TOKEN: ${{ secrets.GODOT_BRIDGE_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pytest pydantic
+
+      - name: Run integration tests
+        run: |
+          mkdir -p artifacts
+          set -o pipefail
+          python -m pytest -q tests_integration -m godot_integration 2>&1 | tee artifacts/integration-test.log
+
+      - name: Upload integration logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-log
+          path: artifacts/integration-test.log
+          if-no-files-found: error
