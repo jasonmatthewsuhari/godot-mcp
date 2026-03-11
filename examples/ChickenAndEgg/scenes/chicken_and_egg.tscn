@@ -1,0 +1,124 @@
+[gd_scene load_steps=16 format=3 uid="uid://chicken-and-egg-main"]
+
+[ext_resource type="Script" path="res://scripts/chicken_and_egg.gd" id="1_script"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ground"]
+albedo_color = Color(0.56, 0.7, 0.46, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_chicken"]
+albedo_color = Color(0.96, 0.93, 0.75, 1)
+roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_beak"]
+albedo_color = Color(1, 0.58, 0.12, 1)
+roughness = 0.7
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_leg"]
+albedo_color = Color(0.95, 0.62, 0.2, 1)
+roughness = 0.75
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_egg"]
+albedo_color = Color(0.98, 0.97, 0.9, 1)
+roughness = 0.65
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
+size = Vector2(14, 14)
+
+[sub_resource type="SphereMesh" id="SphereMesh_body"]
+radius = 0.42
+height = 0.85
+
+[sub_resource type="SphereMesh" id="SphereMesh_head"]
+radius = 0.2
+height = 0.4
+
+[sub_resource type="BoxMesh" id="BoxMesh_beak"]
+size = Vector3(0.24, 0.1, 0.14)
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_wing"]
+radius = 0.12
+mid_height = 0.26
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_leg"]
+top_radius = 0.04
+bottom_radius = 0.04
+height = 0.34
+
+[sub_resource type="SphereMesh" id="SphereMesh_egg"]
+radius = 0.16
+height = 0.34
+
+[sub_resource type="SphereMesh" id="SphereMesh_eye"]
+radius = 0.03
+height = 0.06
+
+[node name="ChickenAndEgg" type="Node3D"]
+script = ExtResource("1_script")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+position = Vector3(0, 2.6, 5.8)
+rotation_degrees = Vector3(-18, 0, 0)
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+position = Vector3(1.8, 4.2, 2)
+rotation_degrees = Vector3(-48, 30, 0)
+light_energy = 1.35
+shadow_enabled = true
+
+[node name="Ground" type="MeshInstance3D" parent="."]
+mesh = SubResource("PlaneMesh_ground")
+material_override = SubResource("StandardMaterial3D_ground")
+
+[node name="Chicken" type="Node3D" parent="."]
+position = Vector3(0, 1, 0)
+
+[node name="Body" type="MeshInstance3D" parent="Chicken"]
+mesh = SubResource("SphereMesh_body")
+material_override = SubResource("StandardMaterial3D_chicken")
+
+[node name="Head" type="MeshInstance3D" parent="Chicken"]
+position = Vector3(0, 0.34, 0.35)
+mesh = SubResource("SphereMesh_head")
+material_override = SubResource("StandardMaterial3D_chicken")
+
+[node name="Beak" type="MeshInstance3D" parent="Chicken"]
+position = Vector3(0, 0.3, 0.56)
+mesh = SubResource("BoxMesh_beak")
+material_override = SubResource("StandardMaterial3D_beak")
+
+[node name="EyeLeft" type="MeshInstance3D" parent="Chicken"]
+position = Vector3(-0.08, 0.39, 0.49)
+mesh = SubResource("SphereMesh_eye")
+
+[node name="EyeRight" type="MeshInstance3D" parent="Chicken"]
+position = Vector3(0.08, 0.39, 0.49)
+mesh = SubResource("SphereMesh_eye")
+
+[node name="WingLeft" type="MeshInstance3D" parent="Chicken"]
+position = Vector3(-0.38, 0.03, 0.02)
+rotation_degrees = Vector3(0, 0, 22)
+mesh = SubResource("CapsuleMesh_wing")
+material_override = SubResource("StandardMaterial3D_chicken")
+
+[node name="WingRight" type="MeshInstance3D" parent="Chicken"]
+position = Vector3(0.38, 0.03, 0.02)
+rotation_degrees = Vector3(0, 0, -22)
+mesh = SubResource("CapsuleMesh_wing")
+material_override = SubResource("StandardMaterial3D_chicken")
+
+[node name="LegLeft" type="MeshInstance3D" parent="Chicken"]
+position = Vector3(-0.12, -0.44, 0.08)
+mesh = SubResource("CylinderMesh_leg")
+material_override = SubResource("StandardMaterial3D_leg")
+
+[node name="LegRight" type="MeshInstance3D" parent="Chicken"]
+position = Vector3(0.12, -0.44, 0.08)
+mesh = SubResource("CylinderMesh_leg")
+material_override = SubResource("StandardMaterial3D_leg")
+
+[node name="Egg" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.18, 0)
+scale = Vector3(1, 1.2, 1)
+mesh = SubResource("SphereMesh_egg")
+material_override = SubResource("StandardMaterial3D_egg")

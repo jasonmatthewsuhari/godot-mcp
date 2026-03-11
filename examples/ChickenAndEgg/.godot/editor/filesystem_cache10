@@ -1,0 +1,7 @@
+63f7b34db8d8cdea90c76aacccf841ec
+::res://::1772285730
+icon.svg::CompressedTexture2D::2682103306283022136::1772278721::1772285731::1::::<><><>0<>0<>742a9bb1d38271abc5a5c0a6d590f9ee<>res://.godot/imported/icon.svg-218a8f2b3041327d8a5756f3a245f83b.ctex::
+::res://scenes/::1772285677
+chicken_and_egg.tscn::PackedScene::-1::1772285677::0::1::::<><><>0<>0<><>::res://scripts/chicken_and_egg.gd
+::res://scripts/::1772285659
+chicken_and_egg.gd::GDScript::5732739518057433928::1772285659::0::1::::<>Node3D<><>0<>0<><>::
