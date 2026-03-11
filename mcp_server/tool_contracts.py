@@ -67,6 +67,29 @@ def _as_int(value: Any, field_name: str) -> int:
     return value
 
 
+def _as_list(value: Any, field_name: str) -> list[Any]:
+    if not isinstance(value, list):
+        raise make_error("validation_error", f"'{field_name}' must be an array")
+    return value
+
+
+def _as_str(value: Any, field_name: str) -> str:
+    if not isinstance(value, str):
+        raise make_error("validation_error", f"'{field_name}' must be a string")
+    return value
+
+
+def _as_operation_list(value: Any, field_name: str) -> list[dict[str, Any]]:
+    if not isinstance(value, list) or len(value) == 0:
+        raise make_error("validation_error", f"'{field_name}' must be a non-empty array")
+    result = []
+    for i, item in enumerate(value):
+        if not isinstance(item, dict):
+            raise make_error("validation_error", f"'{field_name}[{i}]' must be an object")
+        result.append(item)
+    return result
+
+
 def _validate_render_capture_mode(value: Any) -> str:
     mode = _as_non_empty_str(value, "mode")
     if mode not in {"editor", "running"}:
@@ -208,6 +231,162 @@ TOOL_SCHEMAS: dict[str, dict[str, tuple[bool, Validator]]] = {
         "mode": (True, _validate_render_interact_mode),
         "payload": (True, lambda v: _as_dict(v, "payload")),
     },
+    "script_create": {
+        "project_path": (True, lambda v: str(Path(_as_non_empty_str(v, "project_path")))),
+        "script_path": (True, lambda v: _as_non_empty_str(v, "script_path")),
+        "content": (True, lambda v: _as_str(v, "content")),
+        "class_name": (False, lambda v: _as_optional_non_empty_str(v, "class_name")),
+    },
+    "script_edit": {
+        "project_path": (True, lambda v: str(Path(_as_non_empty_str(v, "project_path")))),
+        "script_path": (True, lambda v: _as_non_empty_str(v, "script_path")),
+        "operations": (True, lambda v: _as_operation_list(v, "operations")),
+    },
+    "script_attach": {
+        "project_path": (True, lambda v: str(Path(_as_non_empty_str(v, "project_path")))),
+        "scene_path": (True, lambda v: _as_non_empty_str(v, "scene_path")),
+        "node_path": (True, lambda v: _as_non_empty_str(v, "node_path")),
+        "script_path": (True, lambda v: _as_non_empty_str(v, "script_path")),
+    },
+    "script_validate": {
+        "project_path": (True, lambda v: str(Path(_as_non_empty_str(v, "project_path")))),
+        "script_path": (True, lambda v: _as_non_empty_str(v, "script_path")),
+    },
+    "scene_inspect": {
+        "project_path": (True, lambda v: str(Path(_as_non_empty_str(v, "project_path")))),
+        "scene_path": (True, lambda v: _as_non_empty_str(v, "scene_path")),
+        "max_depth": (False, lambda v: _as_positive_int(v, "max_depth")),
+    },
+    "node_get_properties": {
+        "project_path": (True, lambda v: str(Path(_as_non_empty_str(v, "project_path")))),
+        "scene_path": (True, lambda v: _as_non_empty_str(v, "scene_path")),
+        "node_path": (True, lambda v: _as_non_empty_str(v, "node_path")),
+    },
+    "project_create_from_template": {
+        "template_path": (True, lambda v: str(Path(_as_non_empty_str(v, "template_path")))),
+        "target_path": (True, lambda v: str(Path(_as_non_empty_str(v, "target_path")))),
+        "project_name": (True, lambda v: _as_non_empty_str(v, "project_name")),
+        "replacements": (False, lambda v: _as_dict(v, "replacements")),
+    },
+    "project_get_dependencies": {
+        "project_path": (True, lambda v: str(Path(_as_non_empty_str(v, "project_path")))),
+    },
+    "asset_import": {
+        "project_path": (True, lambda v: str(Path(_as_non_empty_str(v, "project_path")))),
+        "source_path": (True, lambda v: str(Path(_as_non_empty_str(v, "source_path")))),
+        "target_path": (True, lambda v: _as_non_empty_str(v, "target_path")),
+        "scan_after": (False, lambda v: _as_bool(v, "scan_after")),
+    },
+    "scene_diff": {
+        "project_path": (True, lambda v: str(Path(_as_non_empty_str(v, "project_path")))),
+        "scene_path_a": (True, lambda v: _as_non_empty_str(v, "scene_path_a")),
+        "scene_path_b": (True, lambda v: _as_non_empty_str(v, "scene_path_b")),
+    },
+    "tilemap_paint": {
+        "project_path": (True, lambda v: str(Path(_as_non_empty_str(v, "project_path")))),
+        "scene_path": (True, lambda v: _as_non_empty_str(v, "scene_path")),
+        "tilemap_node_path": (True, lambda v: _as_non_empty_str(v, "tilemap_node_path")),
+        "cells": (True, lambda v: _as_list(v, "cells")),
+        "layer": (False, lambda v: _as_int(v, "layer")),
+    },
+    "gridmap_place": {
+        "project_path": (True, lambda v: str(Path(_as_non_empty_str(v, "project_path")))),
+        "scene_path": (True, lambda v: _as_non_empty_str(v, "scene_path")),
+        "gridmap_node_path": (True, lambda v: _as_non_empty_str(v, "gridmap_node_path")),
+        "placements": (True, lambda v: _as_list(v, "placements")),
+    },
+    "material_create": {
+        "project_path": (True, lambda v: str(Path(_as_non_empty_str(v, "project_path")))),
+        "material_path": (True, lambda v: _as_non_empty_str(v, "material_path")),
+        "material_type": (False, lambda v: _as_non_empty_str(v, "material_type")),
+        "properties": (False, lambda v: _as_dict(v, "properties")),
+    },
+    "material_apply": {
+        "project_path": (True, lambda v: str(Path(_as_non_empty_str(v, "project_path")))),
+        "scene_path": (True, lambda v: _as_non_empty_str(v, "scene_path")),
+        "node_path": (True, lambda v: _as_non_empty_str(v, "node_path")),
+        "material_path": (True, lambda v: _as_non_empty_str(v, "material_path")),
+        "surface_index": (False, lambda v: _as_int(v, "surface_index")),
+    },
+    "environment_setup": {
+        "project_path": (True, lambda v: str(Path(_as_non_empty_str(v, "project_path")))),
+        "scene_path": (True, lambda v: _as_non_empty_str(v, "scene_path")),
+        "background_mode": (False, lambda v: _as_non_empty_str(v, "background_mode")),
+        "ambient_light_color": (False, lambda v: _as_optional_non_empty_str(v, "ambient_light_color")),
+        "fog_enabled": (False, lambda v: _as_bool(v, "fog_enabled")),
+        "tonemap_mode": (False, lambda v: _as_optional_non_empty_str(v, "tonemap_mode")),
+    },
+    "csg_operations": {
+        "project_path": (True, lambda v: str(Path(_as_non_empty_str(v, "project_path")))),
+        "scene_path": (True, lambda v: _as_non_empty_str(v, "scene_path")),
+        "parent_node_path": (True, lambda v: _as_non_empty_str(v, "parent_node_path")),
+        "operation": (True, lambda v: _as_non_empty_str(v, "operation")),
+        "shape_type": (True, lambda v: _as_non_empty_str(v, "shape_type")),
+        "shape_properties": (False, lambda v: _as_dict(v, "shape_properties")),
+        "node_name": (True, lambda v: _as_non_empty_str(v, "node_name")),
+    },
+    "animation_create": {
+        "project_path": (True, lambda v: str(Path(_as_non_empty_str(v, "project_path")))),
+        "scene_path": (True, lambda v: _as_non_empty_str(v, "scene_path")),
+        "animation_player_path": (True, lambda v: _as_non_empty_str(v, "animation_player_path")),
+        "animation_name": (True, lambda v: _as_non_empty_str(v, "animation_name")),
+        "length": (True, lambda v: _as_number(v, "length")),
+        "loop": (False, lambda v: _as_bool(v, "loop")),
+    },
+    "animation_add_keyframe": {
+        "project_path": (True, lambda v: str(Path(_as_non_empty_str(v, "project_path")))),
+        "scene_path": (True, lambda v: _as_non_empty_str(v, "scene_path")),
+        "animation_player_path": (True, lambda v: _as_non_empty_str(v, "animation_player_path")),
+        "animation_name": (True, lambda v: _as_non_empty_str(v, "animation_name")),
+        "track_path": (True, lambda v: _as_non_empty_str(v, "track_path")),
+        "time": (True, lambda v: _as_number(v, "time")),
+        "value": (False, lambda v: v),
+    },
+    "godot_get_errors": {
+        "session_id": (False, lambda v: _as_optional_non_empty_str(v, "session_id")),
+        "limit": (False, lambda v: _as_positive_int(v, "limit")),
+    },
+    "signal_watch": {
+        "project_path": (True, lambda v: str(Path(_as_non_empty_str(v, "project_path")))),
+        "scene_path": (True, lambda v: _as_non_empty_str(v, "scene_path")),
+        "node_path": (True, lambda v: _as_non_empty_str(v, "node_path")),
+        "signals": (True, lambda v: _as_optional_string_list(v, "signals")),
+    },
+    "signal_poll": {
+        "project_path": (True, lambda v: str(Path(_as_non_empty_str(v, "project_path")))),
+        "limit": (False, lambda v: _as_positive_int(v, "limit")),
+    },
+    "batch_execute": {
+        "operations": (True, lambda v: _as_list(v, "operations")),
+        "atomic": (False, lambda v: _as_bool(v, "atomic")),
+    },
+    "lock_acquire": {
+        "resource": (True, lambda v: _as_non_empty_str(v, "resource")),
+        "owner": (True, lambda v: _as_non_empty_str(v, "owner")),
+        "ttl_seconds": (False, lambda v: _as_number(v, "ttl_seconds")),
+    },
+    "lock_release": {
+        "resource": (True, lambda v: _as_non_empty_str(v, "resource")),
+        "owner": (True, lambda v: _as_non_empty_str(v, "owner")),
+    },
+    "lock_list": {},
+    "journal_read": {
+        "project_path": (True, lambda v: str(Path(_as_non_empty_str(v, "project_path")))),
+        "limit": (False, lambda v: _as_positive_int(v, "limit")),
+    },
+    "asset_search_online": {
+        "query": (True, lambda v: _as_non_empty_str(v, "query")),
+        "sources": (False, lambda v: _as_optional_string_list(v, "sources")),
+        "limit": (False, lambda v: _as_positive_int(v, "limit")),
+    },
+    "asset_download_3d": {
+        "url": (True, lambda v: _as_non_empty_str(v, "url")),
+        "project_path": (True, lambda v: str(Path(_as_non_empty_str(v, "project_path")))),
+        "target_path": (True, lambda v: _as_non_empty_str(v, "target_path")),
+    },
+    "godot_quick_start": {
+        "project_path": (True, lambda v: str(Path(_as_non_empty_str(v, "project_path")))),
+    },
 }
 
 
@@ -218,6 +397,19 @@ DEFAULTS: dict[str, dict[str, Any]] = {
     "scene_load_sprite": {"import_if_needed": True},
     "scene_save": {"make_inherited": False},
     "render_capture": {"width": 1280, "height": 720, "mode": "editor"},
+    "scene_inspect": {"max_depth": 10},
+    "asset_import": {"scan_after": True},
+    "tilemap_paint": {"layer": 0},
+    "material_create": {"material_type": "standard"},
+    "material_apply": {"surface_index": 0},
+    "environment_setup": {"background_mode": "sky", "fog_enabled": False},
+    "animation_create": {"loop": False},
+    "godot_get_errors": {"limit": 50},
+    "signal_poll": {"limit": 100},
+    "batch_execute": {"atomic": True},
+    "lock_acquire": {"ttl_seconds": 300.0},
+    "journal_read": {"limit": 100},
+    "asset_search_online": {"limit": 10},
 }
 
 

@@ -17,10 +17,14 @@ const ROUTES := {
 	"/scene/load_sprite": "POST",
 	"/scene/export_mesh_library": "POST",
 	"/scene/save": "POST",
+	"/scene/inspect": "POST",
 	"/uid/get": "POST",
 	"/uid/refresh": "POST",
 	"/render/capture": "POST",
-	"/render/interact": "POST"
+	"/render/interact": "POST",
+	"/script/attach": "POST",
+	"/script/validate": "POST",
+	"/node/get_properties": "POST"
 }
 const CLICK_BUTTON_LEFT := 1
 const CAMERA_ORBIT_SENSITIVITY_DEFAULT := 0.01
@@ -142,6 +146,14 @@ func _dispatch_endpoint(path: String, payload: Dictionary) -> Dictionary:
 			return _handle_render_capture(payload)
 		"/render/interact":
 			return _handle_render_interact(payload)
+		"/script/attach":
+			return _handle_script_attach(payload)
+		"/script/validate":
+			return _handle_script_validate(payload)
+		"/scene/inspect":
+			return _handle_scene_inspect(payload)
+		"/node/get_properties":
+			return _handle_node_get_properties(payload)
 		_:
 			return {"status": 404, "payload": _error_payload(path, "not_found", "Unknown endpoint")}
 
@@ -421,6 +433,115 @@ func _render_camera_orbit(payload: Dictionary) -> Dictionary:
 			"details": {"mode": "camera_orbit", "dx": dx, "dy": dy, "sensitivity": sensitivity, "camera_path": str(camera.get_path())}
 		}
 	}
+
+
+func _handle_script_attach(payload: Dictionary) -> Dictionary:
+	var scene_path := _normalize_res_path(str(payload.get("scene_path", "")), ".tscn")
+	var node_path_str := str(payload.get("node_path", ""))
+	var script_path := _normalize_res_path(str(payload.get("script_path", "")), ".gd")
+	if scene_path == "" or node_path_str == "" or script_path == "":
+		return {"status": 400, "payload": _error_payload("/script/attach", "validation_error", "scene_path, node_path, and script_path are required")}
+	var scene_result := _load_scene_root(scene_path)
+	if int(scene_result.get("status", 500)) != 200:
+		return scene_result
+	var root: Node = scene_result.get("root")
+	var target := _resolve_node(root, node_path_str)
+	if target == null:
+		root.queue_free()
+		return {"status": 404, "payload": _error_payload("/script/attach", "node_not_found", "Target node not found")}
+	if not ResourceLoader.exists(script_path):
+		root.queue_free()
+		return {"status": 404, "payload": _error_payload("/script/attach", "resource_not_found", "Script file not found")}
+	var script := ResourceLoader.load(script_path) as Script
+	if script == null:
+		root.queue_free()
+		return {"status": 400, "payload": _error_payload("/script/attach", "invalid_script", "File is not a valid script")}
+	target.set_script(script)
+	var save_result := _save_scene_root(root, scene_path)
+	if int(save_result.get("status", 500)) != 200:
+		return save_result
+	return {"status": 200, "payload": {"ok": true, "node_path": node_path_str, "script_path": script_path}}
+
+
+func _handle_script_validate(payload: Dictionary) -> Dictionary:
+	var script_path := _normalize_res_path(str(payload.get("script_path", "")), ".gd")
+	if script_path == "":
+		return {"status": 400, "payload": _error_payload("/script/validate", "validation_error", "script_path is required")}
+	if not ResourceLoader.exists(script_path):
+		return {"status": 404, "payload": _error_payload("/script/validate", "resource_not_found", "Script file not found")}
+	var script := GDScript.new()
+	script.source_code = FileAccess.get_file_as_string(script_path)
+	var err := script.reload()
+	if err != OK:
+		return {"status": 200, "payload": {"ok": true, "valid": false, "errors": [error_string(err)]}}
+	return {"status": 200, "payload": {"ok": true, "valid": true, "errors": []}}
+
+
+func _handle_scene_inspect(payload: Dictionary) -> Dictionary:
+	var scene_path := _normalize_res_path(str(payload.get("scene_path", "")), ".tscn")
+	if scene_path == "":
+		return {"status": 400, "payload": _error_payload("/scene/inspect", "validation_error", "scene_path is required")}
+	var scene_result := _load_scene_root(scene_path)
+	if int(scene_result.get("status", 500)) != 200:
+		return scene_result
+	var root: Node = scene_result.get("root")
+	var max_depth := int(payload.get("max_depth", 10))
+	var tree := _inspect_node(root, 0, max_depth)
+	root.queue_free()
+	return {"status": 200, "payload": {"ok": true, "root": tree}}
+
+
+func _inspect_node(node: Node, depth: int, max_depth: int) -> Dictionary:
+	var props := {}
+	for prop in node.get_property_list():
+		var prop_name: String = str(prop.get("name", ""))
+		if prop_name == "" or prop_name.begins_with("_"):
+			continue
+		var usage: int = int(prop.get("usage", 0))
+		if usage & PROPERTY_USAGE_EDITOR == 0:
+			continue
+		var value: Variant = node.get(prop_name)
+		if value == null or value is Object:
+			continue
+		props[prop_name] = value
+	var children_arr: Array[Dictionary] = []
+	if depth < max_depth:
+		for child in node.get_children():
+			if child is Node:
+				children_arr.append(_inspect_node(child, depth + 1, max_depth))
+	return {
+		"node_path": str(node.get_path()) if node.is_inside_tree() else node.name,
+		"type": node.get_class(),
+		"properties": props,
+		"children": children_arr
+	}
+
+
+func _handle_node_get_properties(payload: Dictionary) -> Dictionary:
+	var scene_path := _normalize_res_path(str(payload.get("scene_path", "")), ".tscn")
+	var node_path_str := str(payload.get("node_path", ""))
+	if scene_path == "" or node_path_str == "":
+		return {"status": 400, "payload": _error_payload("/node/get_properties", "validation_error", "scene_path and node_path are required")}
+	var scene_result := _load_scene_root(scene_path)
+	if int(scene_result.get("status", 500)) != 200:
+		return scene_result
+	var root: Node = scene_result.get("root")
+	var target := _resolve_node(root, node_path_str)
+	if target == null:
+		root.queue_free()
+		return {"status": 404, "payload": _error_payload("/node/get_properties", "node_not_found", "Node not found")}
+	var props := {}
+	for prop in target.get_property_list():
+		var prop_name: String = str(prop.get("name", ""))
+		if prop_name == "" or prop_name.begins_with("_"):
+			continue
+		var value: Variant = target.get(prop_name)
+		if value == null or value is Object:
+			continue
+		props[prop_name] = value
+	var node_type := target.get_class()
+	root.queue_free()
+	return {"status": 200, "payload": {"ok": true, "node_path": node_path_str, "type": node_type, "properties": props}}
 
 
 func _resolve_camera(payload: Dictionary) -> Camera3D:

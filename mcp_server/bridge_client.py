@@ -61,6 +61,51 @@ class GodotBridgeClient:
     def render_interact(self, payload: dict[str, Any]) -> dict[str, Any]:
         return self._request("POST", "/render/interact", payload)
 
+    def script_attach(self, payload: dict[str, Any]) -> dict[str, Any]:
+        return self._request("POST", "/script/attach", payload)
+
+    def script_validate(self, payload: dict[str, Any]) -> dict[str, Any]:
+        return self._request("POST", "/script/validate", payload)
+
+    def scene_inspect(self, payload: dict[str, Any]) -> dict[str, Any]:
+        return self._request("POST", "/scene/inspect", payload)
+
+    def node_get_properties(self, payload: dict[str, Any]) -> dict[str, Any]:
+        return self._request("POST", "/node/get_properties", payload)
+
+    def asset_import(self, payload: dict[str, Any]) -> dict[str, Any]:
+        return self._request("POST", "/asset/import", payload)
+
+    def tilemap_paint(self, payload: dict[str, Any]) -> dict[str, Any]:
+        return self._request("POST", "/world/tilemap_paint", payload)
+
+    def gridmap_place(self, payload: dict[str, Any]) -> dict[str, Any]:
+        return self._request("POST", "/world/gridmap_place", payload)
+
+    def material_create(self, payload: dict[str, Any]) -> dict[str, Any]:
+        return self._request("POST", "/world/material_create", payload)
+
+    def material_apply(self, payload: dict[str, Any]) -> dict[str, Any]:
+        return self._request("POST", "/world/material_apply", payload)
+
+    def environment_setup(self, payload: dict[str, Any]) -> dict[str, Any]:
+        return self._request("POST", "/world/environment_setup", payload)
+
+    def csg_operations(self, payload: dict[str, Any]) -> dict[str, Any]:
+        return self._request("POST", "/world/csg_operations", payload)
+
+    def animation_create(self, payload: dict[str, Any]) -> dict[str, Any]:
+        return self._request("POST", "/world/animation_create", payload)
+
+    def animation_add_keyframe(self, payload: dict[str, Any]) -> dict[str, Any]:
+        return self._request("POST", "/world/animation_add_keyframe", payload)
+
+    def signal_watch(self, payload: dict[str, Any]) -> dict[str, Any]:
+        return self._request("POST", "/debug/signal_watch", payload)
+
+    def signal_poll(self, payload: dict[str, Any]) -> dict[str, Any]:
+        return self._request("POST", "/debug/signal_poll", payload)
+
     def _request(self, method: str, path: str, payload: dict[str, Any] | None) -> dict[str, Any]:
         headers = {"Content-Type": "application/json", "Authorization": f"Bearer {self.token}"}
         try:
