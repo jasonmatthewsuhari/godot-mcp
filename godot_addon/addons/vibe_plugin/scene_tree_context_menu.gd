@@ -26,17 +26,24 @@ func _on_automate(node_path: String) -> void:
 
 
 func _do_automate(instruction: String, node_path: String) -> void:
+	var loading := _show_loading("Thinking...")
 	var helper: Node = VibeHTTPHelperScript.new()
 	EditorInterface.get_base_control().add_child(helper)
 	helper.request_completed.connect(func(ok: bool, body: Dictionary) -> void:
+		loading.queue_free()
 		if ok:
 			var code: String = body.get("gdscript_code", "")
 			if code.is_empty():
 				_show_error("LLM returned empty script")
 			else:
-				var err := GDScriptExecutorScript.execute(code)
-				if err != OK:
-					_show_error("Script execution error: %s" % error_string(err))
+				# Defer to next frame so we're outside the message queue flush
+				EditorInterface.get_base_control().get_tree().process_frame.connect(
+					func():
+						var err := GDScriptExecutorScript.execute(code)
+						if err != OK:
+							_show_error("Script execution error: %s" % error_string(err)),
+					CONNECT_ONE_SHOT
+				)
 		else:
 			_show_error("Automate failed: %s" % str(body.get("detail", "Unknown error")))
 		helper.queue_free()
@@ -45,6 +52,16 @@ func _do_automate(instruction: String, node_path: String) -> void:
 		"instruction": instruction,
 		"node_info": node_path,
 	})
+
+
+func _show_loading(message: String) -> AcceptDialog:
+	var dlg := AcceptDialog.new()
+	dlg.title = "Vibe Plugin"
+	dlg.dialog_text = message
+	dlg.get_ok_button().hide()
+	EditorInterface.get_base_control().add_child(dlg)
+	dlg.popup_centered()
+	return dlg
 
 
 func _show_error(message: String) -> void:
