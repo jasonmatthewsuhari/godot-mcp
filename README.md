@@ -1,5 +1,9 @@
 # vibe-plugin
 
+
+https://github.com/user-attachments/assets/f7009c71-5870-4471-abb2-d94f4b38736d
+
+
 A Godot 4 editor plugin for AI-assisted game development. Right-click assets and nodes in the editor to generate images, modify existing ones, or automate scene tree operations using natural language.
 
 ## Features
