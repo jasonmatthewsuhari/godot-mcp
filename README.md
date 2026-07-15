@@ -1,8 +1,12 @@
-# godot-mcp
+# Godot MCP
 
 https://github.com/user-attachments/assets/3b52def9-4663-4804-bb32-c7511511a422
 
-MCP server that lets AI agents automate the Godot 4 game engine — create scenes, run projects, capture renders, and send input, all through the [Model Context Protocol](https://modelcontextprotocol.io/).
+Godot MCP is a Model Context Protocol server that lets AI agents automate the
+Godot 4 game engine — create scenes, run projects, capture renders, and send
+input through the [Model Context Protocol](https://modelcontextprotocol.io/).
+
+Created by [Jason Matthew Suhari](https://www.jasonsuhari.com).
 
 ## Features
 
